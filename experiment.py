@@ -135,7 +135,7 @@ def run_experiment(
         X_data, y_data, test_size=0.2, random_state=42, shuffle=True, stratify=y_data
     )
 
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
 
     results = np.zeros((depth, width))
 
@@ -236,7 +236,7 @@ def main(args_in: Optional[List[str]] = None) -> None:
         "--validation",
         help="Number of cross validation folds",
         dest="cv",
-        default=5,
+        default=4,
         type=int
     )
     parser.add_argument(
