@@ -204,7 +204,8 @@ def run_experiment(
 
             plot_roc(tprs, mean_fpr, aucs, destination, d, w)
     plot_results(results, destination)
-    shutil.rmtree('./tmp')
+    shutil.rmtree("./tmp")
+
 
 def main(args_in: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser(
@@ -214,22 +215,23 @@ def main(args_in: Optional[List[str]] = None) -> None:
         "dataset",
         action=IsValidFile,
         help="Input HDF5 dataset file",
-        type=Path
+        default="data/dataset.h5",
+        type=Path,
     )
     parser.add_argument(
         "savepath",
         action=IsReadableDir,
         help="Output for plots",
         default="results",
-        type=Path
+        type=Path,
     )
     parser.add_argument(
         "-e",
         "--epochs",
-        help="Number of epochs",
+        help="Number of training epochs",
         dest="epochs",
         default=100,
-        type=int
+        type=int,
     )
     parser.add_argument(
         "-c",
@@ -237,7 +239,7 @@ def main(args_in: Optional[List[str]] = None) -> None:
         help="Number of cross validation folds",
         dest="cv",
         default=4,
-        type=int
+        type=int,
     )
     parser.add_argument(
         "-b",
@@ -245,7 +247,7 @@ def main(args_in: Optional[List[str]] = None) -> None:
         help="Number of samples in a batch",
         dest="bs",
         default=2048,
-        type=int
+        type=int,
     )
     parser.add_argument(
         "-w",
@@ -253,7 +255,7 @@ def main(args_in: Optional[List[str]] = None) -> None:
         help="Maximum width of the network",
         dest="width",
         default=6,
-        type=int
+        type=int,
     )
     parser.add_argument(
         "-d",
@@ -277,4 +279,3 @@ def main(args_in: Optional[List[str]] = None) -> None:
 
 if __name__ == "__main__":
     main()
-
