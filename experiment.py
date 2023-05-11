@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import shutil
 
+from heapq import nlargest
 from tensorflow import keras
 from keras import layers
 from keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
@@ -195,6 +196,9 @@ def run_experiment(
                 if not aucs or roc_auc > max(aucs):
                     model.save(f"{destination}/model-d{d}-w{w}")
                 aucs.append(roc_auc)
+
+            # Pop bottom half of low AUCs: initialization is too important
+            aucs, tprs = zip(*nlargest(cv - cv // 2, list(zip(aucs, tprs))))
 
             mean_tpr = np.mean(tprs, axis=0)
             mean_tpr[-1] = 1.0
