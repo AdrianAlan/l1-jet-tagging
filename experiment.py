@@ -17,6 +17,7 @@ from sklearn.model_selection import StratifiedKFold
 from typing import List, Optional
 from utils import IsReadableDir, IsValidFile
 
+from clr import CyclicLR
 
 def get_dataset(source: Path) -> (np.array, np.array):
     with h5py.File(source, "r") as f:
@@ -155,13 +156,7 @@ def run_experiment(
 
                 model = build_model(d, w)
 
-                reduce_lr = ReduceLROnPlateau(
-                    monitor="val_loss",
-                    factor=0.5,
-                    patience=10,
-                    verbose=False,
-                    min_lr=0.0000001,
-                )
+                clr = CyclicLR(base_lr=0.001, max_lr=0.006, step_size=50.0)
 
                 checkpoint_filepath = "./tmp/checkpoint"
 
@@ -182,7 +177,7 @@ def run_experiment(
                     validation_data=(X_train[idx_val], y_train[idx_val]),
                     shuffle=True,
                     verbose=0,
-                    callbacks=[reduce_lr, model_checkpoint_callback],
+                    callbacks=[clr, model_checkpoint_callback],
                 )
 
                 model.load_weights(checkpoint_filepath)
