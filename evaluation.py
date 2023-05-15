@@ -97,7 +97,8 @@ def run_evaluation(source: Path, modelpath: Path) -> None:
             mask = scores[prev:ele] > 0.5
             result = results[prev:ele]
             result = list(compress(result, mask))
-            _, pt = min(result)
+            if result:
+                _, pt = min(result)
         cnn_l1_pt.append(pt)
         prev = ele
     cnn_l1_pt = np.array(cnn_l1_pt)

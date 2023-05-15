@@ -18,6 +18,8 @@ from typing import List, Optional
 from utils import IsReadableDir, IsValidFile
 
 from clr import CyclicLR
+from qkeras import QConv2DBatchnorm, QConv2D, QDense, QActivation
+
 
 def get_dataset(source: Path) -> (np.array, np.array):
     with h5py.File(source, "r") as f:
@@ -42,22 +44,44 @@ def build_model(depth: int, width: int) -> keras.Model:
     adam = keras.optimizers.Adam(learning_rate=0.001)
 
     model = keras.Sequential(name="ml-boosted-jets")
-    model.add(layers.Reshape((3, 3, 1), input_shape=(9, 1)))
-    for _ in range(depth):
+    model.add(layers.Input(shape=(9, 1), name="inputs_"))
+    model.add(layers.Reshape((3, 3, 1), name="reshape", input_shape=(9, 1)))
+    for d in range(depth):
         model.add(
-            layers.Conv2D(
+            QConv2DBatchnorm(
                 width,
                 (3, 3),
-                use_bias=False,
-                activation="relu",
+                use_bias=True,
+                kernel_quantizer="quantized_bits(16, 2, 1)",
+                bias_quantizer="quantized_bits(16, 2, 1)",
                 input_shape=(3, 3, 1),
                 padding="same",
+                name=f"qconvbn{d}",
             )
         )
-        model.add(layers.BatchNormalization())
-    model.add(layers.Conv2D(width, (3, 3), input_shape=(3, 3, 1)))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(1, use_bias=False, activation="sigmoid"))
+        model.add(QActivation("quantized_relu(16, 8)", name=f"relu{d}"))
+    model.add(
+        QConv2D(
+            width,
+            (3, 3),
+            use_bias=True,
+            kernel_quantizer="quantized_bits(16, 2, 1)",
+            bias_quantizer="quantized_bits(16, 2, 1)",
+            input_shape=(3, 3, 1),
+            name="qconv",
+        )
+    )
+    model.add(layers.Flatten(name="flatten"))
+    model.add(
+        QDense(
+            1,
+            use_bias=True,
+            kernel_quantizer="quantized_bits(16, 2, 1)",
+            bias_quantizer="quantized_bits(16, 2, 1)",
+            name="output",
+        )
+    )
+    model.add(layers.Activation("sigmoid", name="sigmoid"))
     model.compile(optimizer=adam, loss=loss, metrics=["accuracy"])
     return model
 
