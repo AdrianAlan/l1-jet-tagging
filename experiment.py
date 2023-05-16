@@ -140,8 +140,10 @@ def plot_results(results: np.array, destination: Path) -> None:
         for y_val in range(results.shape[0]):
             c = "{0:.2}".format(results[y_val, x_val])
             plt.text(x_val, y_val, c, va="center", ha="center")
-    plt.xlabel("No Layers")
-    plt.ylabel("No Channels")
+    plt.xlabel("No Channels")
+    plt.ylabel("No Layers")
+    plt.yticks(np.arange(results.shape[0]), np.arange(1, results.shape[0]+1))
+    plt.xticks(np.arange(results.shape[1]), np.arange(1, results.shape[1]+1))
     plt.savefig(f"{destination}/results.png", bbox_inches="tight")
     plt.close()
 
