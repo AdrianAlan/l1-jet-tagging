@@ -24,7 +24,7 @@ def get_dataset(
         jets_per_event = f["jets_per_event"][:]
 
     return (
-        X_data.reshape(-1, 9, 1),
+        X_data.reshape(-1, 9, 1) / 1024.,
         l1_jets_deltas,
         l1_jets_pts,
         l1_pt,

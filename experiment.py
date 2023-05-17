@@ -18,7 +18,7 @@ from typing import List, Optional
 from utils import IsReadableDir, IsValidFile
 
 from clr import CyclicLR
-from qkeras import QConv2DBatchnorm, QConv2D, QDense, QActivation
+from qkeras import QConv2D, QDense, QActivation
 
 
 def get_dataset(source: Path) -> (np.array, np.array):
@@ -34,7 +34,7 @@ def get_dataset(source: Path) -> (np.array, np.array):
         f"Taining samples: {len(y_data)*.8:.0f}; Testing samples: {len(y_data)*.2:.0f}."
     )
 
-    return X_data.reshape(-1, 9, 1), y_data
+    return X_data.reshape(-1, 9, 1) / 1024., y_data
 
 
 def build_model(depth: int, width: int) -> keras.Model:
@@ -48,27 +48,27 @@ def build_model(depth: int, width: int) -> keras.Model:
     model.add(layers.Reshape((3, 3, 1), name="reshape", input_shape=(9, 1)))
     for d in range(depth):
         model.add(
-            QConv2DBatchnorm(
+            QConv2D(
                 width,
                 (3, 3),
                 use_bias=True,
-                kernel_quantizer="quantized_bits(16, 2, 1)",
-                bias_quantizer="quantized_bits(16, 2, 1)",
+                kernel_quantizer="quantized_bits(8, 1, 1, alpha=1)",
+                bias_quantizer="quantized_bits(8, 1, 1, alpha=1)",
                 input_shape=(3, 3, 1),
                 padding="same",
-                name=f"qconvbn{d}",
+                name=f"qconv{d}",
             )
         )
-        model.add(QActivation("quantized_relu(16, 8)", name=f"relu{d}"))
+        model.add(QActivation("quantized_relu(8, 1)", name=f"relu{d}"))
     model.add(
         QConv2D(
             width,
             (3, 3),
             use_bias=True,
-            kernel_quantizer="quantized_bits(16, 2, 1)",
-            bias_quantizer="quantized_bits(16, 2, 1)",
+            kernel_quantizer="quantized_bits(8, 1, 1, alpha=1)",
+            bias_quantizer="quantized_bits(8, 1, 1, alpha=1)",
             input_shape=(3, 3, 1),
-            name="qconv",
+            name=f"qconv{depth}",
         )
     )
     model.add(layers.Flatten(name="flatten"))
@@ -76,8 +76,8 @@ def build_model(depth: int, width: int) -> keras.Model:
         QDense(
             1,
             use_bias=True,
-            kernel_quantizer="quantized_bits(16, 2, 1)",
-            bias_quantizer="quantized_bits(16, 2, 1)",
+            kernel_quantizer="quantized_bits(8, 1, 1, alpha=1)",
+            bias_quantizer="quantized_bits(8, 1, 1, alpha=1)",
             name="output",
         )
     )
