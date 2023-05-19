@@ -27,3 +27,8 @@ Generate the efficiency plots for one of the models:
 ```
 python3 evaluation.py <path_to_model> data/dataset.h5
 ```
+
+Compile the C++ model:
+```
+python3 compile.py <path_to_model> data/dataset.h5 <roc_comparison_output_path>
+```
